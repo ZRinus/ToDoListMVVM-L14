@@ -8,6 +8,8 @@
 import UIKit
 
 class TableViewController: UITableViewController {
+    
+    var viewModel: TaskViewModel?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -17,29 +19,76 @@ class TableViewController: UITableViewController {
 
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        
+        viewModel = TaskViewModel { [unowned self] (state) in
+            switch state.editingStyle {
+                
+            case .addTask(_):
+                self.tableView.reloadData()
+                break
+            case .deleteTask(_):
+                break
+            case .toggleTask(_):
+                self.tableView.reloadData()
+                break
+            case .loadTasks(_):
+                self.tableView.reloadData() 
+                break
+            case .none:
+                self.tableView.reloadData()
+                break
+            }
+        }
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        viewModel?.loadTask()
+        
+        /*
+        let defaults = UserDefaults.standard
+        
+        do {
+            if let data = defaults.data(forKey: "taskItemArray") {
+                
+                let array = try JSONDecoder().decode([TaskItem].self, from: data)
+                
+                todolist = array
+            }
+        } catch {
+            print("Unable to Encode Array (\(error))")
+        }
+        tableView.reloadData()
+         */
     }
 
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
-        return 0
+        return 1
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return 0
+        return (viewModel?.state.todolistArray.count)!
     }
 
-    /*
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
-
-        // Configure the cell...
+        let cell = UITableViewCell(style: .default, reuseIdentifier: "Cell")
+        
+        cell.textLabel?.text = viewModel?.state.text(at: indexPath)
+        
+        cell.accessoryType = (viewModel?.accessoryType(at: IndexPath))!
 
         return cell
     }
-    */
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        viewModel?.toggleTask(at: indexPath)
+    }
 
     /*
     // Override to support conditional editing of the table view.
@@ -49,17 +98,18 @@ class TableViewController: UITableViewController {
     }
     */
 
-    /*
+    
     // Override to support editing the table view.
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            // Delete the row from the data source
+            viewModel?.deleteTask(at: indexPath)
             tableView.deleteRows(at: [indexPath], with: .fade)
         } else if editingStyle == .insert {
             // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
+        }
     }
-    */
+    
+    
 
     /*
     // Override to support rearranging the table view.

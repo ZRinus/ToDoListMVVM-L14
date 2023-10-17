@@ -8,7 +8,7 @@
 import Foundation
 
 struct TaskItem: Codable {
-    var TaskName: String = ""
+    var taskName: String = ""
     var isTaskComplete: Bool = false
     
     init() {
